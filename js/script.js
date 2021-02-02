@@ -1,59 +1,95 @@
 "use strict";
 
-const movieDB = {
-  movies: ["Логан", "Лига справедливости", "Ла-ла лэнд", "Одержимость", "Скотт Пилигрим против..."],
-};
+// Добавляем слушателя, который проверяет построено ли DOM дерево и если да
+// -выполняет весь код скрипта
+document.addEventListener("DOMContentLoaded", () => {
+  // Объект-база данных с фильмами
+  const movieDB = {
+    movies: ["Логан", "Лига справедливости", "Ла-ла лэнд", "Одержимость", "Скотт Пилигрим против..."],
+  };
 
-const promo = document.querySelector(".promo");
-const ads = promo.querySelectorAll(".promo__adv img");
-const genre = promo.querySelector(".promo__genre");
-const bg = promo.querySelector(".promo__bg");
-const list = promo.querySelector(".promo__interactive-list");
-const form = promo.querySelector(".add");
-const formInput = form.querySelector(".adding__input");
-const formCheckbox = form.querySelector("input[type=checkbox]");
-const formButton = form.querySelector("button");
-const filmDelete = promo.querySelector(".delete");
+  // Основые переменные-элементы, с котрыми работаем на странице
+  const promo = document.querySelector(".promo"),
+    adv = promo.querySelectorAll(".promo__adv img"),
+    genre = promo.querySelector(".promo__genre"),
+    bg = promo.querySelector(".promo__bg"),
+    movieList = promo.querySelector(".promo__interactive-list"),
+    addForm = promo.querySelector("form.add"),
+    addInput = addForm.querySelector(".adding__input"),
+    checkbox = addForm.querySelector("input[type=checkbox]");
 
-ads.forEach((img) => {
-  img.remove();
+  // Функция для очистки рекламы с правого блока
+  const deleteAdv = (arr) => {
+    arr.forEach((img) => {
+      img.remove();
+    });
+  };
+
+  // Функция для мелких изменений на странице
+  const makeChanges = () => {
+    genre.textContent = "драма";
+    bg.style.background = "url(../img/bg.jpg) center center/cover no-repeat";
+  };
+
+  // Функция для сортировки массива по алфавиту(будет добавляться функционал)
+  const sortArr = (arr) => {
+    arr.sort();
+  };
+
+  // Создаем функцию для обработки события "нажатие на кнопку формы"
+  function handler(event) {
+    event.preventDefault();
+
+    let newFilm = addInput.value;
+    const favorite = checkbox.checked;
+
+    if (newFilm) {
+      if (newFilm.length > 21) {
+        newFilm = `${newFilm.slice(0, 21)}...`;
+      }
+
+      if (favorite) {
+        console.log("Добавляем любимый фильм");
+      }
+
+      movieDB.movies.push(newFilm);
+
+      createMovieList(movieDB.movies, movieList);
+    }
+
+    event.target.reset();
+  }
+
+  // Вешаем обработчик событий на событие "отправка формы"
+  addForm.addEventListener("submit", handler);
+
+  // Функция для создания в разметке списка фильмов из базы данных
+  function createMovieList(films, parent) {
+    parent.innerHTML = "";
+    sortArr(films);
+
+    films.forEach((newFilm, i) => {
+      parent.innerHTML += `
+      <li class="promo__interactive-item">${i + 1} ${newFilm}
+        <div class="delete"></div>
+      </li>
+    `;
+    });
+
+    // Слушатель для удаления фильмов по нажатию на корзинку
+    // для раждого элемента delete при нажатии удаляем элемент-родитель(т.е li с фильмом)
+    // Методом spliсе удаляем элемент из объекта-базы данных в скрипте
+    // потом пересобираем базу данных с сортировкой внутри
+    promo.querySelectorAll(".delete").forEach((btn, i) => {
+      btn.addEventListener("click", () => {
+        btn.parentElement.remove();
+        films.splice(i, 1);
+        createMovieList(films, parent);
+      });
+    });
+  }
+
+  deleteAdv(adv);
+  makeChanges();
+  createMovieList(movieDB.movies, movieList);
 });
-
-genre.textContent = "драма";
-bg.style.background = "url(../img/bg.jpg) center center/cover no-repeat";
-
-// Создаем функцию для обработки события "нажатие на кнопку формы"
-function handler(event) {
-  event.preventDefault();
-
-  let film = formInput.value;
-  if (film.length > 21) {
-    film = `${film.slice(0, 21)}...`;
-  }
-
-  if (formCheckbox.checked) {
-    console.log("Добавляем любимый фильм");
-  }
-
-  movieDB.movies.push(film);
-  createFilmList();
-}
-
-// Вешаем обработчик событий на кнопку
-formButton.addEventListener("click", handler);
-
-// Функция для создания в разметке списка фильмов из базы данных
-function createFilmList() {
-  list.innerHTML = "";
-  movieDB.movies.sort();
-
-  movieDB.movies.forEach((film, i) => {
-    list.innerHTML += `
-    <li class="promo__interactive-item">${i + 1} ${film}
-      <div class="delete"></div>
-    </li>
-  `;
-  });
-}
-
-createFilmList();
